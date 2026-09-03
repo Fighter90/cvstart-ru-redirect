@@ -1,0 +1,40 @@
+name: Deploy redirect to GitHub Pages
+
+# cvstart.ru is four static files (index.html, 404.html, CNAME, README.md) that
+# bounce visitors to cvstart.org/ru/. It was published by the LEGACY Pages
+# builder, the only structural difference from Fighter90's two repos whose
+# certificates issue normally — both are build_type: workflow. This moves it
+# onto the same path.
+#
+# There is nothing to build: the artifact is the repo root as-is.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never cancel a run mid-deploy: a half-published Pages site is worse than a
+# queued one.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - id: deployment
+        uses: actions/deploy-pages@v4
